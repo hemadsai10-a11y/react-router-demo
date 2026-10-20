@@ -1,133 +1,162 @@
-import React, { useState } from 'react';
+
+import { useState } from 'react';
+import './ContactForm.css';
 
 export default function ContactForm() {
-  const [formData, setFormData] = useState({ username: '', email: '' });
-  const [errors, setErrors] = useState({ username: '', email: '' });
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    phone: ''
+  });
+
+  const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    if (errors[name]) setErrors({ ...errors, [name]: '' });
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      [name]: ''
+    }));
   };
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    let runtimeErrors = { username: '', email: '' };
-    let validationPassed = true;
+
+    const newErrors = {};
 
     if (!formData.username.trim()) {
-      runtimeErrors.username = 'Account username cannot be blank.';
-      validationPassed = false;
+      newErrors.username = 'Please enter your full name.';
     }
 
-    const structuralEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
-      runtimeErrors.email = 'An active email account is required.';
-      validationPassed = false;
-    } else if (!structuralEmailRegex.test(formData.email)) {
-      runtimeErrors.email = 'Please provide a standard structured email format.';
-      validationPassed = false;
+      newErrors.email = 'Please enter your email address.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address.';
     }
 
-    setErrors(runtimeErrors);
-    if (validationPassed) setIsSubmitted(true);
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Please enter your phone number.';
+    } else if (!/^\+?[0-9\s()-]{7,20}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Please enter a valid phone number.';
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      setIsSubmitted(true);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ username: '', email: '', phone: '' });
+    setErrors({});
+    setIsSubmitted(false);
   };
 
   return (
-    <div style={styles.pageCard}>
-      <h2>📝 Secure Gateway Registry</h2>
+    <section className="contact-card">
+      <div className="contact-heading">
+        <span className="contact-icon">✉</span>
+        <p className="contact-eyebrow">LET'S CONNECT</p>
+        <h1>Get in touch</h1>
+        <p className="contact-description">
+          Fill in your details below. We'll help you get started.
+        </p>
+      </div>
+
       {isSubmitted ? (
-        <div style={styles.successNotification}>
-          <strong>Verification Cleared!</strong> User credentials safely registered inside system hooks.
+        <div className="success-notification" role="status">
+          <div className="success-icon">✓</div>
+          <h2>Form submitted successfully!</h2>
+          <p>
+            Thank you, {formData.username}. Your details passed
+            validation on this page.
+          </p>
+          <p className="privacy-note">
+            This demo does not send or store your information on a server.
+          </p>
+          <button type="button" className="submit-button" onClick={resetForm}>
+            Submit another response
+          </button>
         </div>
       ) : (
-        <form onSubmit={handleFormSubmit} style={styles.formLayout}>
-          <div style={styles.inputContainer}>
-            <label style={styles.formLabel}>User Profile Name</label>
+        <form onSubmit={handleFormSubmit} noValidate>
+          <div className="form-field">
+            <label htmlFor="username">Full name</label>
             <input
+              id="username"
               type="text"
               name="username"
+              autoComplete="name"
               value={formData.username}
               onChange={handleChange}
-              style={{...styles.textInput, borderColor: errors.username ? '#e63946' : '#ccc'}}
-              placeholder="Username here..."
+              placeholder="Enter your full name"
+              aria-invalid={Boolean(errors.username)}
+              aria-describedby={errors.username ? 'username-error' : undefined}
             />
-            {errors.username && <span style={styles.errorText}>{errors.username}</span>}
+            {errors.username && (
+              <span id="username-error" className="error-text">
+                {errors.username}
+              </span>
+            )}
           </div>
 
-          <div style={styles.inputContainer}>
-            <label style={styles.formLabel}>Electronic Mail Address</label>
+          <div className="form-field">
+            <label htmlFor="email">Email address</label>
             <input
-              type="text"
+              id="email"
+              type="email"
               name="email"
+              autoComplete="email"
               value={formData.email}
               onChange={handleChange}
-              style={{...styles.textInput, borderColor: errors.email ? '#e63946' : '#ccc'}}
-              placeholder="user@domain.com"
+              placeholder="you@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? 'email-error' : undefined}
             />
-            {errors.email && <span style={styles.errorText}>{errors.email}</span>}
+            {errors.email && (
+              <span id="email-error" className="error-text">
+                {errors.email}
+              </span>
+            )}
           </div>
 
-          <button type="submit" style={styles.actionBtn}>Authorize Workspace</button>
+          <div className="form-field">
+            <label htmlFor="phone">Phone number</label>
+            <input
+              id="phone"
+              type="tel"
+              name="phone"
+              autoComplete="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+              aria-invalid={Boolean(errors.phone)}
+              aria-describedby={errors.phone ? 'phone-error' : undefined}
+            />
+            {errors.phone && (
+              <span id="phone-error" className="error-text">
+                {errors.phone}
+              </span>
+            )}
+          </div>
+
+          <button type="submit" className="submit-button">
+            Submit details <span>→</span>
+          </button>
+
+          <p className="form-note">
+            All fields are required.
+          </p>
         </form>
       )}
-    </div>
+    </section>
   );
 }
-
-const styles = {
-  pageCard: {
-    backgroundColor: '#ffffff',
-    padding: '2.5rem',
-    borderRadius: '10px',
-    boxShadow: '0 10px 25px rgba(29, 53, 87, 0.1)'
-  },
-  formLayout: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.5rem',
-    marginTop: '1.5rem'
-  },
-  inputContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem'
-  },
-  formLabel: {
-    fontWeight: '600',
-    color: '#1d3557',
-    fontSize: '0.9rem'
-  },
-  textInput: {
-    padding: '0.8rem',
-    fontSize: '1rem',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
-    outline: 'none'
-  },
-  errorText: {
-    color: '#e63946',
-    fontSize: '0.85rem',
-    fontWeight: '500'
-  },
-  actionBtn: {
-    backgroundColor: '#e63946',
-    color: '#fff',
-    border: 'none',
-    padding: '0.9rem',
-    fontSize: '1rem',
-    fontWeight: '600',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    marginTop: '0.5rem'
-  },
-  successNotification: {
-    backgroundColor: '#d1e7dd',
-    color: '#0f5132',
-    border: '1px solid #badbcc',
-    padding: '1.25rem',
-    borderRadius: '6px',
-    marginTop: '1rem'
-  }
-};
